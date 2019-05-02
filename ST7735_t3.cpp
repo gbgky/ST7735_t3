@@ -1,10 +1,10 @@
-/*************************************************** 
+/***************************************************
   This is a library for the Adafruit 1.8" SPI display.
   This library works with the Adafruit 1.8" TFT Breakout w/SD card
   ----> http://www.adafruit.com/products/358
   as well as Adafruit raw 1.8" TFT display
   ----> http://www.adafruit.com/products/618
- 
+
   Check out the links above for our tutorials and wiring diagrams
   These displays use SPI to communicate, 4 or 5 pins are required to
   interface (RST is optional)
@@ -86,7 +86,7 @@ void ST7735_t3::writedata(uint8_t c)
 	*csport &= ~cspinmask;
 	spiwrite(c);
 	*csport |= cspinmask;
-} 
+}
 
 void ST7735_t3::writedata16(uint16_t d)
 {
@@ -95,7 +95,7 @@ void ST7735_t3::writedata16(uint16_t d)
 	spiwrite(d >> 8);
 	spiwrite(d);
 	*csport |= cspinmask;
-} 
+}
 
 void ST7735_t3::setBitrate(uint32_t n)
 {
@@ -148,7 +148,7 @@ void ST7735_t3::writedata(uint8_t c)
 	csport->PIO_CODR  |=  cspinmask;
 	spiwrite(c);
 	csport->PIO_SODR  |=  cspinmask;
-} 
+}
 
 void ST7735_t3::writedata16(uint16_t d)
 {
@@ -321,7 +321,7 @@ void ST7735_t3::writedata(uint8_t c)
 	*csport &= ~cspinmask;
 	spiwrite(c);
 	*csport |= cspinmask;
-} 
+}
 
 void ST7735_t3::writedata16(uint16_t d)
 {
@@ -330,7 +330,7 @@ void ST7735_t3::writedata16(uint16_t d)
 	spiwrite(d >> 8);
 	spiwrite(d);
 	*csport |= cspinmask;
-} 
+}
 
 void ST7735_t3::setBitrate(uint32_t n)
 {
@@ -439,7 +439,7 @@ static const uint8_t PROGMEM
       0x00,                   //     Boost frequency
     ST7735_PWCTR4 , 2      ,  // 10: Power control, 2 args, no delay:
       0x8A,                   //     BCLK/2, Opamp current small & Medium low
-      0x2A,  
+      0x2A,
     ST7735_PWCTR5 , 2      ,  // 11: Power control, 2 args, no delay:
       0x8A, 0xEE,
     ST7735_VMCTR1 , 1      ,  // 12: Power control, 1 arg, no delay:
@@ -564,7 +564,7 @@ void ST7735_t3::commonInit(const uint8_t *cmdList)
 	if(hwSPI) { // Using hardware SPI
 		SPI.begin();
 		SPI.setClockDivider(21); // 4 MHz
-		//Due defaults to 4mHz (clock divider setting of 21), but we'll set it anyway 
+		//Due defaults to 4mHz (clock divider setting of 21), but we'll set it anyway
 		SPI.setBitOrder(MSBFIRST);
 		SPI.setDataMode(SPI_MODE0);
 	} else {
@@ -634,7 +634,7 @@ void ST7735_t3::commonInit(const uint8_t *cmdList)
 	hwSPI1 = false;
 	if (_sid == (uint8_t)-1) _sid = 11;
 	if (_sclk == (uint8_t)-1) _sclk = 13;
-	
+
 	// See if pins are on standard SPI0
 	if ((_sid == 7 || _sid == 11) && (_sclk == 13 || _sclk == 14)) {
 		hwSPI = true;
@@ -644,7 +644,7 @@ void ST7735_t3::commonInit(const uint8_t *cmdList)
 			hwSPI1 = true;
 		}
 	}
- 
+
 	pinMode(_rs, OUTPUT);
 	pinMode(_cs, OUTPUT);
 	csport    = portOutputRegister(digitalPinToPort(_cs));
@@ -715,6 +715,12 @@ void ST7735_t3::initR(uint8_t options)
 		commandList(Rcmd2green144);
 		colstart = 2;
 		rowstart = 3;
+  } else if (options == INITR_GREENTAB2) {
+    commandList(Rcmd2green);
+    writecommand(ST7735_MADCTL);
+    writedata(0xC0);
+    colstart = 2;
+    rowstart = 1;
 	} else {
 		// colstart, rowstart left at default '0' values
 		commandList(Rcmd2red);
@@ -734,7 +740,7 @@ void ST7735_t3::initR(uint8_t options)
 void ST7735_t3::setAddrWindow(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1)
 {
 	writecommand(ST7735_CASET); // Column addr set
-	writedata16(x0+colstart);   // XSTART 
+	writedata16(x0+colstart);   // XSTART
 	writedata16(x1+colstart);   // XEND
 	writecommand(ST7735_RASET); // Row addr set
 	writedata16(y0+rowstart);   // YSTART
@@ -821,6 +827,10 @@ void ST7735_t3::setRotation(uint8_t m)
 	case 0:
 		if (tabcolor == INITR_BLACKTAB) {
 			writedata(MADCTL_MX | MADCTL_MY | MADCTL_RGB);
+    } else if(tabcolor == INITR_GREENTAB2) {
+      writedata(MADCTL_MX | MADCTL_MY | MADCTL_RGB);
+      colstart = 2;
+      rowstart = 1;
 		} else {
 			writedata(MADCTL_MX | MADCTL_MY | MADCTL_BGR);
 		}
@@ -834,6 +844,10 @@ void ST7735_t3::setRotation(uint8_t m)
 	case 1:
 		if (tabcolor == INITR_BLACKTAB) {
 			writedata(MADCTL_MY | MADCTL_MV | MADCTL_RGB);
+    } else if(tabcolor == INITR_GREENTAB2) {
+      writedata(MADCTL_MY | MADCTL_MV | MADCTL_RGB);
+      colstart = 1;
+      rowstart = 2;
 		} else {
 			writedata(MADCTL_MY | MADCTL_MV | MADCTL_BGR);
 		}
@@ -847,6 +861,10 @@ void ST7735_t3::setRotation(uint8_t m)
 	case 2:
 		if (tabcolor == INITR_BLACKTAB) {
 			writedata(MADCTL_RGB);
+    } else if(tabcolor == INITR_GREENTAB2) {
+      writedata(MADCTL_RGB);
+      colstart = 2;
+      rowstart = 1;
 		} else {
 			writedata(MADCTL_BGR);
 		}
@@ -860,6 +878,10 @@ void ST7735_t3::setRotation(uint8_t m)
 	case 3:
 		if (tabcolor == INITR_BLACKTAB) {
 			writedata(MADCTL_MX | MADCTL_MV | MADCTL_RGB);
+    } else if(tabcolor == INITR_GREENTAB2) {
+      writedata(MADCTL_MX | MADCTL_MV | MADCTL_RGB);
+      colstart = 1;
+      rowstart = 2;
 		} else {
 			writedata(MADCTL_MX | MADCTL_MV | MADCTL_BGR);
 		}
@@ -878,4 +900,3 @@ void ST7735_t3::invertDisplay(boolean i)
 {
 	writecommand(i ? ST7735_INVON : ST7735_INVOFF);
 }
-
